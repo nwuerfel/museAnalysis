@@ -25,7 +25,7 @@ analysisManager::~analysisManager(){
 void analysisManager::initializeIO(const char* infile_path, 
     const char* outfile_path) {
     
-    cout << "initializingIO...\n";
+    cout << "initializing IO...\n";
 
     this->infile = new TFile(infile_path, "READ");
     this->outfile = new TFile(outfile_path, "RECREATE");
@@ -75,14 +75,39 @@ int analysisManager::parseInfile(){
         "CHAMBER_VETO_scint_fired");
     TTreeReaderValue<double> tgt_scint_edep(reader, 
         "CHAMBER_VETO_scints_Edep");
-
     
     // iterate over all events, make cuts, and save good ones
     /* HERE COME THOSE CUTS */
-
     return num_processed;
-
 }
+
+// add cuts to the analysis manager in the form of names
+// feels fucking clumsy but I'm too stupid to do better
+// returns 0 if no problem, 1 if problem
+bool analysisManager::addCut(string cutName){
+    bool cut_ok = false;
+    if(cutName.empty()){
+        cout << "tried to add cut without name!\n";
+    }
+    else if(find(this->recognized_cuts.begin(),
+        this->recognized_cuts.end(), cutName) == 
+        this->recognized_cuts.end()){
+        cout << cutName << " not in recognized list!\n";
+        cout << "add the cut name or correct the typo!\n";
+    }
+    else{
+        cuts.push_back(cutName);
+        cout << "successfully added cut: " << cutName << endl;
+        cut_ok = true;
+    }
+    return cut_ok;
+}
+
+
+// fuck no clue what I'm doing
+//bool passCuts(vector<string> cuts){
+
+//}
 
 // print welcome
 void analysisManager::welcome(){

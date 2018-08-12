@@ -57,9 +57,21 @@ int main(int argc, char* argv[]){
     analysisManager* analyzer = new analysisManager(infile_path, 
         theta_min, theta_max, scint_threshold, outfile_path);
 
-    int num_pass_cuts = analyzer->parseInfile();
+    bool cuts_ok = true;
 
-    cout << num_pass_cuts << endl;
+    // anding the truth and then checking at end tells us if any cuts
+    // failed withotu having to check everytime
+    // addCut throws specific warnigns
+    cuts_ok = cuts_ok && analyzer->addCut("theta_cut");
+    
+    if(!cuts_ok){
+        cout << "couldn't add all the cuts, sorry :/\n";
+        exit(-1);
+    }
+
+    //int num_pass_cuts = analyzer->parseInfile();
+
+    //cout << num_pass_cuts << endl;
 
     // wrap up
     return 0;
