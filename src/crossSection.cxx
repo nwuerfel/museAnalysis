@@ -1,4 +1,5 @@
 #include "../include/analysisManager.h"
+#include "../include/cut.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <TFile.h>
@@ -54,15 +55,20 @@ int main(int argc, char* argv[]){
     const char* outfile_path = (defaultOutputPath+outfile_name).c_str();
 
     // call mr. analysis
+    // verbose for now
     analysisManager* analyzer = new analysisManager(infile_path, 
-        theta_min, theta_max, scint_threshold, outfile_path);
+        theta_min, theta_max, scint_threshold, outfile_path, true);
+
+    // initialize cuts to add to anlaysis
+    
+    cut* first_cut = new cut("generic_cut");    
 
     bool cuts_ok = true;
 
     // anding the truth and then checking at end tells us if any cuts
     // failed withotu having to check everytime
     // addCut throws specific warnigns
-    cuts_ok = cuts_ok && analyzer->addCut("theta_cut");
+    cuts_ok = cuts_ok && analyzer->addCut(first_cut);
     
     if(!cuts_ok){
         cout << "couldn't add all the cuts, sorry :/\n";

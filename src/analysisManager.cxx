@@ -2,12 +2,14 @@
 #include "../include/eventObj.h"
 using namespace std;
 
+
 // initialization list construction
 analysisManager::analysisManager(const char* infile_path, 
     double theta_min, double theta_max, 
-    double scint_threshold, const char* outfile_path) : 
+    double scint_threshold, const char* outfile_path, bool verbose) : 
     infile_path(infile_path), theta_min(theta_min), theta_max(theta_max), 
-    scint_threshold(scint_threshold), outfile_path(outfile_path) {
+    scint_threshold(scint_threshold), outfile_path(outfile_path),
+    verbose(verbose){
 
     welcome();
     initializeIO(infile_path, outfile_path);
@@ -57,6 +59,7 @@ void analysisManager::checkFile(TFile* file, const char* filename) {
 int analysisManager::readPrunedTree(){
     
     int num_processed = 0;
+    bool passed_cuts = false;
 
     TTreeReader reader("T",this->infile);
 
@@ -95,10 +98,15 @@ int analysisManager::readPrunedTree(){
         num_processed++;
 
         // Debug
-        this_event->debug();
+        if(verbose)
+            this_event->debug();
         if(num_processed == 3)
             break;
         // EOD
+
+        // invoke cuts on the event 
+        passed_cuts = applyAllCuts(this_event);
+        cout << "passed cuts: " << passed_cuts << endl;
 
     }
 
@@ -107,38 +115,41 @@ int analysisManager::readPrunedTree(){
     return num_processed;
 }
 
-// add cuts to the analysis manager in the form of names
-// feels fucking clumsy but I'm too stupid to do better
-// returns 0 if no problem, 1 if problem
-bool analysisManager::addCut(string cutName){
-    bool cut_ok = false;
-    if(cutName.empty()){
-        cout << "tried to add cut without name!\n";
-    }
-    else if(find(this->recognized_cuts.begin(),
-        this->recognized_cuts.end(), cutName) == 
-        this->recognized_cuts.end()){
-        cout << cutName << " not in recognized list!\n";
-        cout << "add the cut name or correct the typo!\n";
+// adds cuts to manager, returns true on success
+bool analysisManager::addCut(cut* this_cut){
+    bool cut_ok = true;
+    if(!this_cut){
+        cout << "tried to add NULL cut\n";
+        cut_ok = false;
     }
     else{
-        cuts.push_back(cutName);
-        cout << "successfully added cut: " << cutName << endl;
-        cut_ok = true;
+        cuts.push_back(this_cut);
+        cout << "successfully added cut: " << this_cut->name << endl;
     }
+    
     return cut_ok;
 }
 
-//bool analysisManager::applyCuts(){
-//}
+// iterate over analysisManager's cut list and apply all cuts
+// to an event 
+bool analysisManager::applyAllCuts(eventObj* this_event){
+    bool retval = true;
+    bool cut_result;
+    for(vector<int>::size_type i = 0; i != cuts.size(); i++){
+        if(verbose)
+            cout << "applying cut: " << cuts[i]->name << endl;
+        cut_result = cuts[i]->applyCut(this_event);
+        retval = retval && cut_result;
+    }
+    return retval;
+}
 
-// print welcome
 void analysisManager::welcome(){
     cout << endl;
     cout << "analysisManager initialized...\n";
     cout << "inFile: " << infile << endl;
-    cout << "theta range: " << theta_min << " degrees to  " << theta_max <<
-        " degrees" << endl;
+    cout << "theta range: " << theta_min << " degrees to  " 
+        << theta_max << " degrees" << endl;
     cout << "scintillator threshold: " << scint_threshold << endl;
     cout << "outfile: " << outfile << endl;
     cout << endl;

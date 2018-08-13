@@ -20,4 +20,7 @@ its utilities differently
 
 The Analysis Manager:
 
-    
+Adding cuts: in analysisManager.h one can add a recognized cut to a 
+string vector of recognized cut names    
+
+
