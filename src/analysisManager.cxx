@@ -1,4 +1,5 @@
 #include "../include/analysisManager.h"
+#include "../include/eventObj.h"
 using namespace std;
 
 // initialization list construction
@@ -52,7 +53,8 @@ void analysisManager::checkFile(TFile* file, const char* filename) {
 // parse input files and fill TTrees
 // ~~~MAKES CUTS~~~~
 // returns number of events passing cuts
-int analysisManager::parseInfile(){
+// ADD branches here AND to eventObj.h
+int analysisManager::readPrunedTree(){
     
     int num_processed = 0;
 
@@ -62,22 +64,46 @@ int analysisManager::parseInfile(){
     //  in_signal_region;
     
     cout << "Parsing input file...\n";
+
+    // named_branch iters have the iterator and branch name so that 
+    // "plugin" cuts can determine whether they have the right fields
     
     // ADD BRANCHES TO READ HERE
     TTreeReaderValue<double> recon_theta(reader, "recon_theta");
-    TTreeReaderValue<double> doca(reader, "doca");
-    TTreeReaderValue<TVector3> vertex(reader, "recon_vertex");
+    TTreeReaderValue<double> doca(reader, "recon_doca");
     TTreeReaderValue<double> weight(reader, "weight");
     TTreeReaderValue<bool> hit_veto(reader, "VSC_hit");
-    // blm -> beam line monitor
-    TTreeReaderValue<bool> hit_blm(reader, "BLSC_hit");
-    TTreeReaderValue<bool> tgt_scint_hit(reader, 
-        "CHAMBER_VETO_scint_fired");
-    TTreeReaderValue<double> tgt_scint_edep(reader, 
-        "CHAMBER_VETO_scints_Edep");
+    // blsc -> beam line (monitor) scintillator
+    TTreeReaderValue<bool> hit_blsc(reader, "BLSC_hit");
+    TTreeReaderValue<bool> frame_hit(reader, "frame_hit");
+    TTreeReaderValue<bool> tgt_event(reader, "CHAMBER_target_event");
+
+    eventObj* this_event = new eventObj(); 
+
+    while(reader.Next()){
+
+        // ~~~ INITIALIZE EVENT ~~~
+        this_event->theta = *recon_theta;
+        this_event->doca = *doca;
+        this_event->weight = *weight;
+        this_event->hit_veto = *hit_veto;
+        this_event->hit_blsc = *hit_blsc;
+        this_event->frame_hit = *frame_hit;
+        this_event->frame_hit = *tgt_event;
+        // ~~~ E O I ~~~
     
-    // iterate over all events, make cuts, and save good ones
-    /* HERE COME THOSE CUTS */
+        num_processed++;
+
+        // Debug
+        this_event->debug();
+        if(num_processed == 3)
+            break;
+        // EOD
+
+    }
+
+    delete this_event;
+
     return num_processed;
 }
 
@@ -103,10 +129,7 @@ bool analysisManager::addCut(string cutName){
     return cut_ok;
 }
 
-
-// fuck no clue what I'm doing
-//bool passCuts(vector<string> cuts){
-
+//bool analysisManager::applyCuts(){
 //}
 
 // print welcome

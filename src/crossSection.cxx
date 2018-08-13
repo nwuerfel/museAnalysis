@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
         exit(-1);
     }
 
-    //int num_pass_cuts = analyzer->parseInfile();
+    int num_pass_cuts = analyzer->readPrunedTree();
 
     //cout << num_pass_cuts << endl;
 
