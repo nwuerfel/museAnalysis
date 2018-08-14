@@ -26,31 +26,21 @@
 #include "../include/cut.h"
 #include "../include/eventObj.h"
 
-using namespace std;
-
 class analysisManager {
     public: 
-        analysisManager(const char* infile_path, double theta_min, 
-            double theta_max, double scint_threshold, 
+        analysisManager(const char* infile_path, 
             const char* outfile_path, bool verbose);
 
         ~analysisManager();
 
-        int readPrunedTree();
+        int pruneInputTree();
 
         bool addCut(cut* cutName);
+        void debugAllCuts();
 
         const char* infile_path;
-        const double theta_min; /* degrees */
-        const double theta_max; /* degrees */
-        const double scint_threshold; /* UNITS */
         const char* outfile_path;
         const bool verbose;
-    
-    // histograms will go here
-    // still not used to all the expressions
-//        TH1D* post_cut_data = new TH1D("post_cut_data", "",
- ////           80, 20, 100);
     
     private: 
         void welcome();
@@ -60,12 +50,9 @@ class analysisManager {
         void checkFile(TFile* file, const char* filename);
         bool applyAllCuts(eventObj* this_event);
 
-        vector<cut*> cuts;
-        vector<string> recognized_cuts{"theta_cut", "doca_cut", 
-            "vertex_cut", "blsc_cut", "veto_cut"};
+        std::vector<cut*> cuts;
 
         TFile* infile;
         TFile* outfile;
 };
-
 #endif 

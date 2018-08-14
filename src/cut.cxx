@@ -1,10 +1,9 @@
-#include "../include/analysisTypes.h"
 #include "../include/cut.h"
 #include "../include/eventObj.h"
 #include <iostream>
 
 // initialization list constructor
-cut::cut(std::string name) : name(name.c_str()){
+cut::cut(const char* name) : name(name){
     std::cout << "instantiated cut: " << name << std::endl;
 }
 

@@ -1,15 +1,16 @@
 #include "../include/analysisManager.h"
 #include "../include/cut.h"
+#include "../include/thetaCut.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <TFile.h>
 
-using namespace std;
-
-/* Noah Wuerfel 
+/*
+ * @trashman
  * Aug 11, 2018 
  * nwuerfel@umich.edu   
  * Umich goobloo
+ * AP AP AP AP
  */
 
 /* Processes data output from Anamuse, makes cuts and then generates the
@@ -23,10 +24,13 @@ using namespace std;
 
 int main(int argc, char* argv[]){
 
-    const string defaultOutputPath = "../outputs/";
-    const string defaultOutputName =  "default.out";
-    const string usage = "usage: ./crossSection <infile> "
-        "<theta_min> <theta_max> <veto scint threshold> "
+    //tmp to be replaced by params file
+    double theta_min = 0;
+    double theta_max = 0;    
+
+    const std::string defaultOutputPath = "../outputs/";
+    const std::string defaultOutputName =  "default.out";
+    const std::string usage = "usage: ./crossSection <infile> "
         "optional:<outfile>";
 
     // not sure what this is about but for now I keep legacy 
@@ -34,19 +38,16 @@ int main(int argc, char* argv[]){
     //gStyle->SetOptStat(0);
 
     // parse args
-    if(argc < 5){
-        cout << usage << endl;
+    if(argc < 2){
+        std::cout << usage << std::endl;
         exit(1);
     }
     const char* infile_path = argv[1];
-    double theta_min = (double) strtol(argv[2],NULL,10);
-    double theta_max = (double) strtol(argv[3],NULL,10);
-    double scint_threshold = (double) strtol(argv[4],NULL,10);
-    string outfile_name;
+    std::string outfile_name;
 
     // setoutfile if provided
-    if (argc == 6){
-        outfile_name = argv[5];
+    if (argc == 3){
+        outfile_name = argv[2];
     }
     // default else
     else {
@@ -57,29 +58,35 @@ int main(int argc, char* argv[]){
     // call mr. analysis
     // verbose for now
     analysisManager* analyzer = new analysisManager(infile_path, 
-        theta_min, theta_max, scint_threshold, outfile_path, true);
+        outfile_path, true);
 
     // initialize cuts to add to anlaysis
-    
     cut* first_cut = new cut("generic_cut");    
+    thetaCut* theta_cut = new thetaCut("theta_cut", 
+        theta_min, theta_max);
+
+    std::cout << "thetaCut name: " << theta_cut->name << std::endl;
+    std::cout << "thetaCut name: " << theta_cut->name << std::endl;
 
     bool cuts_ok = true;
 
-    // anding the truth and then checking at end tells us if any cuts
-    // failed withotu having to check everytime
-    // addCut throws specific warnigns
-    cuts_ok = cuts_ok && analyzer->addCut(first_cut);
+    // add cuts to the analysis manager
+    cuts_ok = analyzer->addCut(first_cut);
+    cuts_ok = analyzer->addCut(theta_cut);
+
+    // debug
+    analyzer->debugAllCuts();
     
     if(!cuts_ok){
-        cout << "couldn't add all the cuts, sorry :/\n";
+        std::cout << "couldn't add all the cuts, sorry :/\n";
         exit(-1);
     }
 
-    int num_pass_cuts = analyzer->readPrunedTree();
+    int num_pass_cuts = analyzer->pruneInputTree();
 
-    //cout << num_pass_cuts << endl;
 
     // wrap up
+    std::cout << "I'm done, go home please...\n";
     return 0;
     
 }

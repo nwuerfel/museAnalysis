@@ -1,16 +1,11 @@
 #include "../include/analysisManager.h"
 #include "../include/eventObj.h"
-using namespace std;
-
 
 // initialization list construction
 analysisManager::analysisManager(const char* infile_path, 
-    double theta_min, double theta_max, 
-    double scint_threshold, const char* outfile_path, bool verbose) : 
-    infile_path(infile_path), theta_min(theta_min), theta_max(theta_max), 
-    scint_threshold(scint_threshold), outfile_path(outfile_path),
+    const char* outfile_path, bool verbose) : 
+    infile_path(infile_path),  outfile_path(outfile_path),
     verbose(verbose){
-
     welcome();
     initializeIO(infile_path, outfile_path);
 
@@ -18,7 +13,7 @@ analysisManager::analysisManager(const char* infile_path,
 
 // destructor has to close files and cleanup IO
 analysisManager::~analysisManager(){
-    cout << "closing files..." << endl;
+    std::cout << "closing files..." << std::endl;
     this->infile->Close();
     this->outfile->Close();
 }
@@ -28,7 +23,7 @@ analysisManager::~analysisManager(){
 void analysisManager::initializeIO(const char* infile_path, 
     const char* outfile_path) {
     
-    cout << "initializing IO...\n";
+    std::cout << "initializing IO...\n";
 
     this->infile = new TFile(infile_path, "READ");
     this->outfile = new TFile(outfile_path, "RECREATE");
@@ -36,18 +31,18 @@ void analysisManager::initializeIO(const char* infile_path,
     checkFile(infile, infile_path);
     checkFile(outfile, outfile_path); 
 
-    cout << "IO initialzied...\n";
+    std::cout << "IO initialzied...\n";
 }
 
 // helper function that looks for errors in setting up IO 
 // dies and complains if shit is bad
 void analysisManager::checkFile(TFile* file, const char* filename) {
     if(!file){
-        cout << "filepointer null...\n";
+        std::cout << "filepointer null...\n";
         exit(-1);
     }
     if(file->IsZombie()){
-        cout << filename << " is bunk!\n";
+        std::cout << filename << " is bunk!\n";
         exit(-1);
     }
 }
@@ -56,22 +51,17 @@ void analysisManager::checkFile(TFile* file, const char* filename) {
 // ~~~MAKES CUTS~~~~
 // returns number of events passing cuts
 // ADD branches here AND to eventObj.h
-int analysisManager::readPrunedTree(){
+int analysisManager::pruneInputTree(){
     
     int num_processed = 0;
     bool passed_cuts = false;
 
     TTreeReader reader("T",this->infile);
 
-    //bool theta_pass, doca_pass, vertex_pass, blsc_pass, veto_pass,
-    //  in_signal_region;
-    
-    cout << "Parsing input file...\n";
+    std::cout << "Parsing input file...\n";
 
-    // named_branch iters have the iterator and branch name so that 
-    // "plugin" cuts can determine whether they have the right fields
-    
     // ADD BRANCHES TO READ HERE
+    // theta from anamuse output is in radians
     TTreeReaderValue<double> recon_theta(reader, "recon_theta");
     TTreeReaderValue<double> doca(reader, "recon_doca");
     TTreeReaderValue<double> weight(reader, "weight");
@@ -86,7 +76,8 @@ int analysisManager::readPrunedTree(){
     while(reader.Next()){
 
         // ~~~ INITIALIZE EVENT ~~~
-        this_event->theta = *recon_theta;
+        // convert to degrees
+        this_event->theta = *recon_theta * 180/M_PI;
         this_event->doca = *doca;
         this_event->weight = *weight;
         this_event->hit_veto = *hit_veto;
@@ -106,7 +97,7 @@ int analysisManager::readPrunedTree(){
 
         // invoke cuts on the event 
         passed_cuts = applyAllCuts(this_event);
-        cout << "passed cuts: " << passed_cuts << endl;
+        std::cout << "passed cuts: " << passed_cuts << std::endl;
 
     }
 
@@ -119,12 +110,16 @@ int analysisManager::readPrunedTree(){
 bool analysisManager::addCut(cut* this_cut){
     bool cut_ok = true;
     if(!this_cut){
-        cout << "tried to add NULL cut\n";
+        if(verbose)
+            std::cout << "tried to add NULL cut\n";
         cut_ok = false;
     }
     else{
         cuts.push_back(this_cut);
-        cout << "successfully added cut: " << this_cut->name << endl;
+        if(verbose){
+            std::cout << "successfully added cut: " 
+                << this_cut->name << std::endl;
+        }
     }
     
     return cut_ok;
@@ -135,9 +130,11 @@ bool analysisManager::addCut(cut* this_cut){
 bool analysisManager::applyAllCuts(eventObj* this_event){
     bool retval = true;
     bool cut_result;
-    for(vector<int>::size_type i = 0; i != cuts.size(); i++){
-        if(verbose)
-            cout << "applying cut: " << cuts[i]->name << endl;
+    for(std::vector<int>::size_type i = 0; i != cuts.size(); i++){
+        if(verbose){
+            std::cout << "applying cut: " << cuts[i]->name
+                << std::endl;
+        }
         cut_result = cuts[i]->applyCut(this_event);
         retval = retval && cut_result;
     }
@@ -145,12 +142,22 @@ bool analysisManager::applyAllCuts(eventObj* this_event){
 }
 
 void analysisManager::welcome(){
-    cout << endl;
-    cout << "analysisManager initialized...\n";
-    cout << "inFile: " << infile << endl;
-    cout << "theta range: " << theta_min << " degrees to  " 
-        << theta_max << " degrees" << endl;
-    cout << "scintillator threshold: " << scint_threshold << endl;
-    cout << "outfile: " << outfile << endl;
-    cout << endl;
+    std::cout << std::endl;
+    std::cout << "********************\n";
+    std::cout << "analysisManager initialized...\n";
+    std::cout << "inFile: " << infile_path << std::endl;
+    std::cout << "outfile: " << outfile_path << std::endl;
+    std::cout << "verbose: " << verbose << std::endl;
+    std::cout << "********************\n";
+    std::cout << std::endl;
+}
+
+void analysisManager::debugAllCuts(){
+
+    for(std::vector<int>::size_type i = 0; i != cuts.size(); i++){
+        std::cout << "cut #" << i << ": " << cuts[i]->name 
+            << std::endl; 
+        std::cout << "pointer is: " << cuts[i] << std::endl;
+    }
+
 }
