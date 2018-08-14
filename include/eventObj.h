@@ -6,12 +6,13 @@ class eventObj {
     
         eventObj();
 
-        eventObj(double theta, double doca, double weight, 
+        eventObj(int event_id, double theta, double doca, double weight, 
             bool hit_veto, bool hit_blsc, bool frame_hit,
             bool tgt_event);
 
         ~eventObj();
 
+        int event_id;
         double theta;
         double doca;
         double weight;

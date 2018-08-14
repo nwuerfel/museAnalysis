@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
 
     //tmp to be replaced by params file
     double theta_min = 0;
-    double theta_max = 0;    
+    double theta_max = 100;    
 
     const std::string defaultOutputPath = "../outputs/";
     const std::string defaultOutputName =  "default.out";
@@ -61,18 +61,17 @@ int main(int argc, char* argv[]){
         outfile_path, true);
 
     // initialize cuts to add to anlaysis
+    // analysisManager will delete them
+    // later this will be handled by a parser and params files
     cut* first_cut = new cut("generic_cut");    
     thetaCut* theta_cut = new thetaCut("theta_cut", 
         theta_min, theta_max);
 
-    std::cout << "thetaCut name: " << theta_cut->name << std::endl;
-    std::cout << "thetaCut name: " << theta_cut->name << std::endl;
-
     bool cuts_ok = true;
 
     // add cuts to the analysis manager
-    cuts_ok = analyzer->addCut(first_cut);
-    cuts_ok = analyzer->addCut(theta_cut);
+    cuts_ok = cuts_ok && analyzer->addCut(first_cut);
+    cuts_ok = cuts_ok && analyzer->addCut(theta_cut);
 
     // debug
     analyzer->debugAllCuts();
@@ -86,6 +85,7 @@ int main(int argc, char* argv[]){
 
 
     // wrap up
+    delete analyzer;
     std::cout << "I'm done, go home please...\n";
     return 0;
     

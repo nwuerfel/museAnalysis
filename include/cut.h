@@ -6,6 +6,8 @@
 class cut {
     public:
         cut(const char* name);
+        virtual ~cut();
+
         virtual bool applyCut(eventObj* this_event);
 
         const char* name;

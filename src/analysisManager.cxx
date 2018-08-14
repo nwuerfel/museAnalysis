@@ -16,6 +16,11 @@ analysisManager::~analysisManager(){
     std::cout << "closing files..." << std::endl;
     this->infile->Close();
     this->outfile->Close();
+
+    std::cout << "deleting cuts..." << std::endl;
+    for(std::vector<int>::size_type i = 0; i < cuts.size(); i++){
+        delete cuts[i];
+    }
 }
 
 
@@ -31,7 +36,7 @@ void analysisManager::initializeIO(const char* infile_path,
     checkFile(infile, infile_path);
     checkFile(outfile, outfile_path); 
 
-    std::cout << "IO initialzied...\n";
+    std::cout << "IO initialized...\n";
 }
 
 // helper function that looks for errors in setting up IO 
@@ -53,7 +58,7 @@ void analysisManager::checkFile(TFile* file, const char* filename) {
 // ADD branches here AND to eventObj.h
 int analysisManager::pruneInputTree(){
     
-    int num_processed = 0;
+    int event_number = 0;
     bool passed_cuts = false;
 
     TTreeReader reader("T",this->infile);
@@ -76,6 +81,7 @@ int analysisManager::pruneInputTree(){
     while(reader.Next()){
 
         // ~~~ INITIALIZE EVENT ~~~
+        this_event->event_id = event_number;
         // convert to degrees
         this_event->theta = *recon_theta * 180/M_PI;
         this_event->doca = *doca;
@@ -86,24 +92,24 @@ int analysisManager::pruneInputTree(){
         this_event->frame_hit = *tgt_event;
         // ~~~ E O I ~~~
     
-        num_processed++;
+        event_number++;
 
         // Debug
         if(verbose)
             this_event->debug();
-        if(num_processed == 3)
-            break;
         // EOD
 
         // invoke cuts on the event 
         passed_cuts = applyAllCuts(this_event);
         std::cout << "passed cuts: " << passed_cuts << std::endl;
 
+        //TODO remove
+        if(event_number == 3)
+            break;
+ 
     }
-
     delete this_event;
-
-    return num_processed;
+    return event_number;
 }
 
 // adds cuts to manager, returns true on success
@@ -129,14 +135,20 @@ bool analysisManager::addCut(cut* this_cut){
 // to an event 
 bool analysisManager::applyAllCuts(eventObj* this_event){
     bool retval = true;
-    bool cut_result;
+    bool cut_ok;
     for(std::vector<int>::size_type i = 0; i != cuts.size(); i++){
         if(verbose){
             std::cout << "applying cut: " << cuts[i]->name
                 << std::endl;
         }
-        cut_result = cuts[i]->applyCut(this_event);
-        retval = retval && cut_result;
+        cut_ok = cuts[i]->applyCut(this_event);
+        if(verbose){
+            if(!cut_ok){
+                std::cout << "failed cut: " << cuts[i]->name
+                    << std::endl;
+            }
+        }
+        retval = retval && cut_ok;
     }
     return retval;
 }
