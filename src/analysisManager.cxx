@@ -17,6 +17,7 @@ analysisManager::~analysisManager(){
     this->infile->Close();
     this->outfile->Close();
 
+    // clear cuts we allocated space for in the master
     std::cout << "deleting cuts..." << std::endl;
     for(std::vector<int>::size_type i = 0; i < cuts.size(); i++){
         delete cuts[i];
@@ -92,21 +93,22 @@ int analysisManager::pruneInputTree(){
         this_event->frame_hit = *tgt_event;
         // ~~~ E O I ~~~
     
-        event_number++;
 
         // Debug
-        if(verbose)
+        if(verbose && this_event->hit_blsc)
             this_event->debug();
         // EOD
 
         // invoke cuts on the event 
         passed_cuts = applyAllCuts(this_event);
-        std::cout << "passed cuts: " << passed_cuts << std::endl;
+        if(verbose)
+            std::cout << "passed cuts: " << passed_cuts << std::endl;
 
         //TODO remove
-        if(event_number == 5)
+        if(this_event->hit_blsc)
             break;
  
+        event_number++;
     }
     delete this_event;
     return event_number;
@@ -132,7 +134,7 @@ bool analysisManager::addCut(cut* this_cut){
 }
 
 // iterate over analysisManager's cut list and apply all cuts
-// to an event 
+// to an event and ends if any cut fails
 bool analysisManager::applyAllCuts(eventObj* this_event){
     bool retval = true;
     bool cut_ok;
@@ -142,13 +144,14 @@ bool analysisManager::applyAllCuts(eventObj* this_event){
                 << std::endl;
         }
         cut_ok = cuts[i]->applyCut(this_event);
-        if(verbose){
-            if(!cut_ok){
+        retval = retval && cut_ok;
+        if(!cut_ok){
+            if(verbose){
                 std::cout << "failed cut: " << cuts[i]->name
                     << std::endl;
             }
+            break;
         }
-        retval = retval && cut_ok;
     }
     return retval;
 }

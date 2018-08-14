@@ -9,4 +9,4 @@ class vetoCut: public cut {
         bool applyCut(eventObj* this_event);
 };
 
-#endif
+#endif /* VETOCUT_H */

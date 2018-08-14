@@ -13,4 +13,4 @@ class thetaCut : public cut {
         const double theta_max;
 };
 
-#endif
+#endif /* THETACUT_H */

@@ -12,4 +12,4 @@ class cut {
 
         const char* name;
 };
-#endif
+#endif /* CUT_H */

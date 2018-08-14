@@ -23,8 +23,7 @@
 #include <TH1D.h>
 #include <TH2D.h>
 #include <iostream>
-#include "../include/cut.h"
-#include "../include/eventObj.h"
+#include "../include/allCuts.h"
 
 class analysisManager {
     public: 
