@@ -104,7 +104,7 @@ int analysisManager::pruneInputTree(){
         std::cout << "passed cuts: " << passed_cuts << std::endl;
 
         //TODO remove
-        if(event_number == 3)
+        if(event_number == 5)
             break;
  
     }

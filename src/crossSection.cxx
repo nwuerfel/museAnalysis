@@ -1,6 +1,5 @@
 #include "../include/analysisManager.h"
-#include "../include/cut.h"
-#include "../include/thetaCut.h"
+#include "../include/allcuts.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <TFile.h>
@@ -66,12 +65,14 @@ int main(int argc, char* argv[]){
     cut* first_cut = new cut("generic_cut");    
     thetaCut* theta_cut = new thetaCut("theta_cut", 
         theta_min, theta_max);
+    vetoCut* veto_cut = new vetoCut("veto_cut");
 
     bool cuts_ok = true;
 
     // add cuts to the analysis manager
     cuts_ok = cuts_ok && analyzer->addCut(first_cut);
     cuts_ok = cuts_ok && analyzer->addCut(theta_cut);
+    cuts_ok = cuts_ok && analyzer->addCut(veto_cut);
 
     // debug
     analyzer->debugAllCuts();

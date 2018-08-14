@@ -1,0 +1,16 @@
+#ifndef NAMEOFCUT_H
+#define NAMEOFCUT_H
+
+class (nameOf)Cut: public cut {
+    public: 
+        // add fields in the constructor here 
+        (nameOf)Cut(const char* name);
+
+        // add other fields specific to this cut here
+    
+        // override base class applyCut function
+        // add necessary inputs here
+        bool applyCut(eventObj* this_event);
+}
+
+#endif
