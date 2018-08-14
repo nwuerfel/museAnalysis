@@ -1,5 +1,4 @@
 #include "../include/analysisManager.h"
-#include "../include/eventObj.h"
 
 // initialization list construction
 analysisManager::analysisManager(const char* infile_path, 
@@ -168,11 +167,9 @@ void analysisManager::welcome(){
 }
 
 void analysisManager::debugAllCuts(){
-
     for(std::vector<int>::size_type i = 0; i != cuts.size(); i++){
         std::cout << "cut #" << i << ": " << cuts[i]->name 
             << std::endl; 
         std::cout << "pointer is: " << cuts[i] << std::endl;
     }
-
 }

@@ -62,16 +62,17 @@ int main(int argc, char* argv[]){
     // initialize cuts to add to anlaysis
     // analysisManager will delete them
     // later this will be handled by a parser and params files
-    cut* first_cut = new cut("generic_cut");    
+    cut* test_cut = new cut("test_cut");    
     thetaCut* theta_cut = new thetaCut("theta_cut", 
         theta_min, theta_max);
     vetoCut* veto_cut = new vetoCut("veto_cut");
     blscCut* blsc_cut = new blscCut("blsc_cut"); 
+    
 
     bool cuts_ok = true;
 
     // add cuts to the analysis manager
-    cuts_ok = cuts_ok && analyzer->addCut(first_cut);
+    cuts_ok = cuts_ok && analyzer->addCut(test_cut);
     cuts_ok = cuts_ok && analyzer->addCut(theta_cut);
     cuts_ok = cuts_ok && analyzer->addCut(veto_cut);
     cuts_ok = cuts_ok && analyzer->addCut(blsc_cut);

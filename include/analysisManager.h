@@ -24,6 +24,7 @@
 #include <TH2D.h>
 #include <iostream>
 #include "../include/allCuts.h"
+#include "../include/eventObj.h"
 
 class analysisManager {
     public: 
