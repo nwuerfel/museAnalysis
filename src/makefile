@@ -1,28 +1,25 @@
-CC = g++
-CXX = g++
-CXXFLAGS = -ggdb -Wall -O0 -std=c++17
-ROOTFLAGS = `root-config --cflags --glibs`
+CC=g++
+CXX=g++
+CXXFLAGS=-ggdb -Wall -O0 -std=c++17
+ROOTFLAGS=`root-config --cflags --glibs`
 
-crossSection: crossSection.o analysisManager.o eventObj.o cut.o \
-	thetaCut.o
-	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) -o ../bin/crossSection \
-		crossSection.o analysisManager.o eventObj.o cut.o \
-			thetaCut.o
+# add new files here and its all good
+objects=crossSection.o analysisManager.o eventObj.o \
+	cut.o thetaCut.o
 
-crossSection.o: crossSection.cxx ../include/analysisManager.h
-	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) -c crossSection.cxx
+# spec the analysis/ "master" bin to build
+crossSection: $(objects)
+	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) -o ../bin/crossSection $(objects)
 
-analysisManager.o: analysisManager.cxx ../include/analysisManager.h 
-	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) -c analysisManager.cxx
+# add others here for other analyses
 
-eventObj.o: eventObj.cxx ../include/eventObj.h
-	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) -c eventObj.cxx
+# tell GNU how to make a .o from .cxx
+# automatically generates dependancies
+%.o: %.cxx 
+	$(CXX) -MMD $(CXXFLAGS) $(ROOTFLAGS) -c $< 
+	rm $*.d
 
-cut.o: cut.cxx ../include/cut.h
-	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) -c cut.cxx
-
-thetaCut.o: thetaCut.cxx ../include/thetaCut.h
-	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) -c thetaCut.cxx
+.PHONY : clean
 
 clean:
-	-rm ../bin/crossSection *.o
+	-rm ../bin/crossSection *.o *.d
