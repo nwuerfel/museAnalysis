@@ -75,6 +75,7 @@ int analysisManager::pruneInputTree(){
     TTreeReaderValue<bool> hit_blsc(reader, "BLSC_hit");
     TTreeReaderValue<bool> frame_hit(reader, "frame_hit");
     TTreeReaderValue<bool> tgt_event(reader, "CHAMBER_target_event");
+    TTreeReaderValue<TVector3> vertex(reader, "recon_vertex");
 
     eventObj* this_event = new eventObj(); 
 
@@ -86,6 +87,9 @@ int analysisManager::pruneInputTree(){
         this_event->theta = *recon_theta * 180/M_PI;
         this_event->doca = *doca;
         this_event->weight = *weight;
+        this_event->vertex_x = vertex->x();
+        this_event->vertex_y = vertex->y();
+        this_event->vertex_z = vertex->z();
         this_event->hit_veto = *hit_veto;
         this_event->hit_blsc = *hit_blsc;
         this_event->frame_hit = *frame_hit;
@@ -93,18 +97,19 @@ int analysisManager::pruneInputTree(){
         // ~~~ E O I ~~~
     
 
-        // Debug
-        if(verbose && this_event->hit_blsc)
-            this_event->debug();
-        // EOD
-
         // invoke cuts on the event 
         passed_cuts = applyAllCuts(this_event);
         if(verbose)
             std::cout << "passed cuts: " << passed_cuts << std::endl;
 
+        // Debug
+        if(verbose && !passed_cuts)
+            this_event->debug();
+        // EOD
+
+
         //TODO remove
-        if(this_event->hit_blsc)
+        if(event_number == 100)
             break;
  
         event_number++;

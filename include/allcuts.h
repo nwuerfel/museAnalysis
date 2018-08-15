@@ -4,4 +4,5 @@
 #include "thetaCut.h"
 #include "vetoCut.h"
 #include "blscCut.h"
+#include "vertexCut.h"
 #endif /* ALLCUTS_H */

@@ -11,6 +11,6 @@ class (nameOf)Cut: public cut {
         // override base class applyCut function
         // add necessary inputs here
         bool applyCut(eventObj* this_event);
-}
+};
 
 #endif

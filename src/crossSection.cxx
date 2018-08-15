@@ -2,7 +2,6 @@
 #include "../include/allCuts.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <TFile.h>
 
 /*
  * @trashman
@@ -26,6 +25,9 @@ int main(int argc, char* argv[]){
     //tmp to be replaced by params file
     double theta_min = 0;
     double theta_max = 100;    
+    double vertex_max_x = 45.0;
+    double vertex_max_y = 100; 
+    double vertex_max_z = 50;
 
     const std::string defaultOutputPath = "../outputs/";
     const std::string defaultOutputName =  "default.out";
@@ -67,8 +69,9 @@ int main(int argc, char* argv[]){
         theta_min, theta_max);
     vetoCut* veto_cut = new vetoCut("veto_cut");
     blscCut* blsc_cut = new blscCut("blsc_cut"); 
+    vertexCut* vertex_cut = new vertexCut("vertex_cut",
+        vertex_max_x, vertex_max_y, vertex_max_z);
     
-
     bool cuts_ok = true;
 
     // add cuts to the analysis manager
@@ -76,8 +79,8 @@ int main(int argc, char* argv[]){
     cuts_ok = cuts_ok && analyzer->addCut(theta_cut);
     cuts_ok = cuts_ok && analyzer->addCut(veto_cut);
     cuts_ok = cuts_ok && analyzer->addCut(blsc_cut);
+    cuts_ok = cuts_ok && analyzer->addCut(vertex_cut);
    
-
     // debug
     analyzer->debugAllCuts();
     
