@@ -103,7 +103,7 @@ int analysisManager::pruneInputTree(){
             std::cout << "passed cuts: " << passed_cuts << std::endl;
 
         // Debug
-        if(verbose && !passed_cuts)
+        if(verbose && *doca > 25)
             this_event->debug();
         // EOD
 

@@ -1,5 +1,6 @@
 #ifndef NAMEOFCUT_H
 #define NAMEOFCUT_H
+#include "cut.h"
 
 class (nameOf)Cut: public cut {
     public: 
@@ -13,4 +14,4 @@ class (nameOf)Cut: public cut {
         bool applyCut(eventObj* this_event);
 };
 
-#endif
+#endif /* NAMEOFCUT_H */

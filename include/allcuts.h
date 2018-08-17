@@ -5,4 +5,5 @@
 #include "vetoCut.h"
 #include "blscCut.h"
 #include "vertexCut.h"
+#include "docaCut.h"
 #endif /* ALLCUTS_H */

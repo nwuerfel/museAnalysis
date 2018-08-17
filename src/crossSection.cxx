@@ -28,6 +28,7 @@ int main(int argc, char* argv[]){
     double vertex_max_x = 45.0;
     double vertex_max_y = 100; 
     double vertex_max_z = 50;
+    double doca_max = 25;
 
     const std::string defaultOutputPath = "../outputs/";
     const std::string defaultOutputName =  "default.out";
@@ -71,6 +72,7 @@ int main(int argc, char* argv[]){
     blscCut* blsc_cut = new blscCut("blsc_cut"); 
     vertexCut* vertex_cut = new vertexCut("vertex_cut",
         vertex_max_x, vertex_max_y, vertex_max_z);
+    docaCut* doca_cut = new docaCut("doca_cut", doca_max);
     
     bool cuts_ok = true;
 
@@ -80,21 +82,20 @@ int main(int argc, char* argv[]){
     cuts_ok = cuts_ok && analyzer->addCut(veto_cut);
     cuts_ok = cuts_ok && analyzer->addCut(blsc_cut);
     cuts_ok = cuts_ok && analyzer->addCut(vertex_cut);
+    cuts_ok = cuts_ok && analyzer->addCut(doca_cut);
    
     // debug
     analyzer->debugAllCuts();
     
     if(!cuts_ok){
-        std::cout << "couldn't add all the cuts, sorry :/\n";
+        std::cout << "couldn't add all your cuts, sorry :/\n";
         exit(-1);
     }
 
     int num_pass_cuts = analyzer->pruneInputTree();
 
-
     // wrap up
     delete analyzer;
     std::cout << "I'm done, go home please...\n";
     return 0;
-    
 }
