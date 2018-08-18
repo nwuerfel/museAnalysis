@@ -64,8 +64,6 @@ int main(int argc, char* argv[]){
         outfile_path, true);
 
     // initialize cuts to add to anlaysis
-    // analysisManager will delete them
-    // later this will be handled by a parser and params files
     cut* test_cut = new cut("test_cut");    
     thetaCut* theta_cut = new thetaCut("theta_cut", 
         theta_min, theta_max);
@@ -100,6 +98,7 @@ int main(int argc, char* argv[]){
 
     // wrap up
     delete analyzer;
+    //no need to free cuts, handled by the analyzer
     std::cout << "I'm done, go home please...\n";
     return 0;
 }

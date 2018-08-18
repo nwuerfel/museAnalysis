@@ -15,6 +15,9 @@ analysisManager::~analysisManager(){
     std::cout << "closing files..." << std::endl;
     this->infile->Close();
     this->outfile->Close();
+    std::cout << "deleting TFile pointers..." << std::endl;
+    delete this->infile;
+    delete this->outfile;
 
     // clear cuts we allocated space for in the master
     std::cout << "deleting cuts..." << std::endl;
