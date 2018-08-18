@@ -76,6 +76,8 @@ int analysisManager::pruneInputTree(){
     TTreeReaderValue<bool> frame_hit(reader, "frame_hit");
     TTreeReaderValue<bool> tgt_event(reader, "CHAMBER_target_event");
     TTreeReaderValue<TVector3> vertex(reader, "recon_vertex");
+    TTreeReaderValue<TVector3> recon_tgt_hit_pos(reader,
+        "recon_tgt_hit_pos");
 
     eventObj* this_event = new eventObj(); 
 
@@ -90,6 +92,9 @@ int analysisManager::pruneInputTree(){
         this_event->vertex_x = vertex->x();
         this_event->vertex_y = vertex->y();
         this_event->vertex_z = vertex->z();
+        // gives the radial distance from the center of the gem
+        // TODO which gem?
+        this_event->gem_radial_dist = recon_tgt_hit_pos->Perp();
         this_event->hit_veto = *hit_veto;
         this_event->hit_blsc = *hit_blsc;
         this_event->frame_hit = *frame_hit;
@@ -103,8 +108,9 @@ int analysisManager::pruneInputTree(){
             std::cout << "passed cuts: " << passed_cuts << std::endl;
 
         // Debug
-        if(verbose && *doca > 25)
+        if(verbose && recon_tgt_hit_pos->Perp() > 34){
             this_event->debug();
+        }
         // EOD
 
 

@@ -26,9 +26,10 @@ int main(int argc, char* argv[]){
     double theta_min = 0;
     double theta_max = 100;    
     double vertex_max_x = 45.0;
-    double vertex_max_y = 100; 
-    double vertex_max_z = 50;
-    double doca_max = 25;
+    double vertex_max_y = 100.0; 
+    double vertex_max_z = 50.0;
+    double doca_max = 25.0;
+    double gem_max_radial_dist = 34.0;
 
     const std::string defaultOutputPath = "../outputs/";
     const std::string defaultOutputName =  "default.out";
@@ -73,6 +74,8 @@ int main(int argc, char* argv[]){
     vertexCut* vertex_cut = new vertexCut("vertex_cut",
         vertex_max_x, vertex_max_y, vertex_max_z);
     docaCut* doca_cut = new docaCut("doca_cut", doca_max);
+    gemXYCut* gem_radial_cut = new gemXYCut("gem_radial_cut",
+        gem_max_radial_dist);
     
     bool cuts_ok = true;
 
@@ -83,6 +86,7 @@ int main(int argc, char* argv[]){
     cuts_ok = cuts_ok && analyzer->addCut(blsc_cut);
     cuts_ok = cuts_ok && analyzer->addCut(vertex_cut);
     cuts_ok = cuts_ok && analyzer->addCut(doca_cut);
+    cuts_ok = cuts_ok && analyzer->addCut(gem_radial_cut);
    
     // debug
     analyzer->debugAllCuts();

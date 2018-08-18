@@ -6,7 +6,7 @@ ROOTFLAGS=`root-config --cflags --glibs`
 # add new files here and its all good
 objects=crossSection.o analysisManager.o eventObj.o \
 	cut.o thetaCut.o vetoCut.o blscCut.o vertexCut.o \
-	docaCut.o
+	docaCut.o gemXYCut.o
 
 # spec the analysis/ "master" bin to build
 crossSection: $(objects)

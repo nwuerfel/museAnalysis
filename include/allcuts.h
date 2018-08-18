@@ -6,4 +6,5 @@
 #include "blscCut.h"
 #include "vertexCut.h"
 #include "docaCut.h"
+#include "gemXYCut.h"
 #endif /* ALLCUTS_H */
