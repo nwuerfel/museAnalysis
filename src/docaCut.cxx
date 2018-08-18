@@ -8,7 +8,7 @@ docaCut::docaCut(const char* name, double doca_max): cut(name),
 
 bool docaCut::applyCut(eventObj* this_event){
     bool retval = false;
-    double doca = this_event->doca;
+    double doca = this_event->event.doca;
     if(doca < doca_max) 
         retval = true;
     return retval;

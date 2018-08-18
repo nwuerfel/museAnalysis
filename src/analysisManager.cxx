@@ -21,6 +21,13 @@ analysisManager::~analysisManager(){
     for(std::vector<int>::size_type i = 0; i < cuts.size(); i++){
         delete cuts[i];
     }
+
+    // clear the eventObjects we made 
+    std::cout << "deleting pruned_events..." << std::endl;
+    for(std::vector<int>::size_type i = 0; 
+        i < pruned_event_list.size(); i++){
+        delete pruned_event_list[i];
+    }
 }
 
 
@@ -79,26 +86,26 @@ int analysisManager::pruneInputTree(){
     TTreeReaderValue<TVector3> recon_tgt_hit_pos(reader,
         "recon_tgt_hit_pos");
 
-    eventObj* this_event = new eventObj(); 
-
     while(reader.Next()){
 
         // ~~~ INITIALIZE EVENT ~~~
-        this_event->event_id = event_number;
+        eventObj* this_event = new eventObj(); 
+
+        this_event->event.event_id = event_number;
         // convert to degrees
-        this_event->theta = *recon_theta * 180/M_PI;
-        this_event->doca = *doca;
-        this_event->weight = *weight;
-        this_event->vertex_x = vertex->x();
-        this_event->vertex_y = vertex->y();
-        this_event->vertex_z = vertex->z();
+        this_event->event.theta = *recon_theta * 180/M_PI;
+        this_event->event.doca = *doca;
+        this_event->event.weight = *weight;
+        this_event->event.vertex_x = vertex->x();
+        this_event->event.vertex_y = vertex->y();
+        this_event->event.vertex_z = vertex->z();
         // gives the radial distance from the center of the gem
         // TODO which gem?
-        this_event->gem_radial_dist = recon_tgt_hit_pos->Perp();
-        this_event->hit_veto = *hit_veto;
-        this_event->hit_blsc = *hit_blsc;
-        this_event->frame_hit = *frame_hit;
-        this_event->frame_hit = *tgt_event;
+        this_event->event.gem_radial_dist = recon_tgt_hit_pos->Perp();
+        this_event->event.hit_veto = *hit_veto;
+        this_event->event.hit_blsc = *hit_blsc;
+        this_event->event.frame_hit = *frame_hit;
+        this_event->event.frame_hit = *tgt_event;
         // ~~~ E O I ~~~
     
 
@@ -113,14 +120,22 @@ int analysisManager::pruneInputTree(){
         }
         // EOD
 
-
+        if(passed_cuts){
+            if(verbose){
+                std::cout << "added event# " << event_number 
+                    << " to pruned event list\n";
+            }
+            pruned_event_list.push_back(this_event);
+        }
+        // free memory from unsaved events
+        else{
+            delete this_event;
+        }
         //TODO remove
         if(event_number == 100)
             break;
- 
         event_number++;
     }
-    delete this_event;
     return event_number;
 }
 

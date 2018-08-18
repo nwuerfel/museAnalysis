@@ -6,7 +6,7 @@ gemXYCut::gemXYCut(const char* name, double max_radial_dist): cut(name),
 
 bool gemXYCut::applyCut(eventObj* this_event){
     bool retval = false;
-    double grd = this_event->gem_radial_dist;
+    double grd = this_event->event.gem_radial_dist;
     if(grd < max_radial_dist) 
         retval = true;
     return retval;

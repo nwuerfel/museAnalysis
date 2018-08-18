@@ -8,9 +8,9 @@ vertexCut::vertexCut(const char* name, double max_x, double max_y,
 // checks to see if reconstructed vertex is within a fiducial volume
 bool vertexCut::applyCut(eventObj* this_event){
     bool retval = false; 
-    if(fabs(this_event->vertex_x) < max_x && 
-        fabs(this_event->vertex_y) < max_y && 
-        fabs(this_event->vertex_z) < max_z){
+    if(fabs(this_event->event.vertex_x) < max_x && 
+        fabs(this_event->event.vertex_y) < max_y && 
+        fabs(this_event->event.vertex_z) < max_z){
         retval = true;
     }
     return retval;

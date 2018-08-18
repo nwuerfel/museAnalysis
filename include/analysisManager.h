@@ -51,6 +51,7 @@ class analysisManager {
         bool applyAllCuts(eventObj* this_event);
 
         std::vector<cut*> cuts;
+        std::vector<eventObj*> pruned_event_list;
 
         TFile* infile;
         TFile* outfile;
