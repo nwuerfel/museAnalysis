@@ -1,4 +1,6 @@
 #include "../include/analysisManager.h"
+#define ROI_THETA_MIN 20
+#define ROI_THETA_MAX 100
 
 // initialization list construction
 analysisManager::analysisManager(const char* infile_path, 
@@ -12,12 +14,6 @@ analysisManager::analysisManager(const char* infile_path,
 
 // destructor has to close files and cleanup IO
 analysisManager::~analysisManager(){
-    std::cout << "closing files..." << std::endl;
-    this->infile->Close();
-    this->outfile->Close();
-    std::cout << "deleting TFile pointers..." << std::endl;
-    delete this->infile;
-    delete this->outfile;
 
     // clear cuts we allocated space for in the master
     std::cout << "deleting cuts..." << std::endl;
@@ -25,27 +21,32 @@ analysisManager::~analysisManager(){
         delete cuts[i];
     }
 
-    // clear the eventObjects we made 
-    std::cout << "deleting pruned_events..." << std::endl;
+    // clear the histograms we made 
+    std::cout << "deleting pruned_histograms..." << std::endl;
     for(std::vector<int>::size_type i = 0; 
-        i < pruned_event_list.size(); i++){
-        delete pruned_event_list[i];
+        i < pruned_histograms.size(); i++){
+        delete pruned_histograms[i];
     }
+
+    // close up IO
+    std::cout << "closing files..." << std::endl;
+    infile->Close();
+    outfile->Close();
+    std::cout << "deleting TFile pointers..." << std::endl;
+    delete infile;
+    delete outfile;
+
 }
 
 
 // open files, set up file pointers and check them
 void analysisManager::initializeIO(const char* infile_path, 
     const char* outfile_path) {
-    
     std::cout << "initializing IO...\n";
-
-    this->infile = new TFile(infile_path, "READ");
-    this->outfile = new TFile(outfile_path, "RECREATE");
-
+    infile = new TFile(infile_path, "READ");
+    outfile = new TFile(outfile_path, "RECREATE");
     checkFile(infile, infile_path);
     checkFile(outfile, outfile_path); 
-
     std::cout << "IO initialized...\n";
 }
 
@@ -62,16 +63,17 @@ void analysisManager::checkFile(TFile* file, const char* filename) {
     }
 }
 
-// parse input files and fill TTrees
+// parse input files and fill histograms
 // ~~~MAKES CUTS~~~~
 // returns number of events passing cuts
 // ADD branches here AND to eventObj.h
 int analysisManager::pruneInputTree(){
     
     int event_number = 0;
+    int num_passed_cuts = 0;
     bool passed_cuts = false;
 
-    TTreeReader reader("T",this->infile);
+    TTreeReader reader("T",infile);
 
     std::cout << "Parsing input file...\n";
 
@@ -89,10 +91,15 @@ int analysisManager::pruneInputTree(){
     TTreeReaderValue<TVector3> recon_tgt_hit_pos(reader,
         "recon_tgt_hit_pos");
 
+    // make histograms to save the events
+    // allocates memory and gets cleaned up in destructor
+    generatePrunedHistograms();
+
+    eventObj* this_event = new eventObj(); 
+
     while(reader.Next()){
 
         // ~~~ INITIALIZE EVENT ~~~
-        eventObj* this_event = new eventObj(); 
 
         this_event->event.event_id = event_number;
         // convert to degrees
@@ -111,7 +118,6 @@ int analysisManager::pruneInputTree(){
         this_event->event.frame_hit = *tgt_event;
         // ~~~ E O I ~~~
     
-
         // invoke cuts on the event 
         passed_cuts = applyAllCuts(this_event);
         if(verbose)
@@ -125,21 +131,21 @@ int analysisManager::pruneInputTree(){
 
         if(passed_cuts){
             if(verbose){
-                std::cout << "added event# " << event_number 
-                    << " to pruned event list\n";
+                std::cout << "added event #" << event_number 
+                    << " to pruned_histogram\n";
             }
-            pruned_event_list.push_back(this_event);
-        }
-        // free memory from unsaved events
-        else{
-            delete this_event;
+            num_passed_cuts++;
         }
         //TODO remove
         if(event_number == 100)
             break;
         event_number++;
     }
-    return event_number;
+    if(verbose)
+        std::cout << "handled " << event_number << " events" << std::endl;
+    // gimme that memory back
+    delete this_event;
+    return num_passed_cuts;
 }
 
 // adds cuts to manager, returns true on success
@@ -202,3 +208,76 @@ void analysisManager::debugAllCuts(){
         std::cout << "pointer is: " << cuts[i] << std::endl;
     }
 }
+
+void analysisManager::debugPrunedHistograms(){
+    for(std::vector<int>::size_type i=0; i!=pruned_histograms.size(); i++){
+        std::cout << "histogram #" << i << ": " 
+            << pruned_histograms[i]->GetName() << std::endl;
+        std::cout << "pointer is: " << pruned_histograms[i] << std::endl;
+    }
+}
+
+
+// generates all required histograms so they can be filled while pruning
+void analysisManager::generatePrunedHistograms(){
+
+    std::cout << "generating histograms..." << std::endl;
+
+    // ADD HISTOGRAMS TO ADD HERE
+    // shouldn't fail but oh well, check in case
+    TH1D* theta_hist = new TH1D("pruned_theta_distribution",
+        "pruned_theta_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+    if(!theta_hist){
+        std::cout << "theta_hist is bunk!\n";
+        exit(-1);
+    }
+    TH1D* doca_hist = new TH1D("pruned_doca_distribution",
+        "pruned_doca_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+    if(!doca_hist){
+        std::cout << "doca_hist is bunk!\n";
+        exit(-1);
+    }
+    TH1D* weight_hist = new TH1D("pruned_weight_distribution",
+        "pruned_weight_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+    if(!weight_hist){
+        std::cout << "weight_hist is bunk!\n";
+        exit(-1);
+    }
+    TH1D* vertex_x_hist = new TH1D("pruned_vertex_x_distribution",
+        "pruned_vertex_x_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+    if(!vertex_x_hist){
+        std::cout << "vertex_x_hist is bunk!\n";
+        exit(-1);
+    }
+    TH1D* vertex_y_hist = new TH1D("pruned_vertex_y_distribution",
+        "pruned_vertex_y_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+    if(!vertex_y_hist){
+        std::cout << "vertex_y_hist is bunk!\n";
+        exit(-1);
+    }
+    TH1D* vertex_z_hist = new TH1D("pruned_veretx_z_distribution",
+        "pruned_veretx_z_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+    if(!vertex_z_hist){
+        std::cout << "vertex_z_hist is bunk!\n";
+        exit(-1);
+    }
+    TH1D* gem_radial_dist_hist = 
+        new TH1D("pruned_gem_radial_dist_distribution", 
+        "pruned_gem_radial_dist_distribution", 80, ROI_THETA_MIN, 
+        ROI_THETA_MAX);
+    if(!gem_radial_dist_hist){
+        std::cout << "gem_radial_dist_hist is bunk!\n";
+        exit(-1);
+    }
+
+    // now push into the Q
+    pruned_histograms.push_back(theta_hist);
+    pruned_histograms.push_back(doca_hist);
+    pruned_histograms.push_back(weight_hist);
+    pruned_histograms.push_back(vertex_x_hist);
+    pruned_histograms.push_back(vertex_y_hist);
+    pruned_histograms.push_back(vertex_z_hist);
+    pruned_histograms.push_back(gem_radial_dist_hist);
+
+}
+

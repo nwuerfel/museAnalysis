@@ -37,21 +37,24 @@ class analysisManager {
 
         bool addCut(cut* cutName);
         void debugAllCuts();
+        void debugPrunedHistograms();
 
         const char* infile_path;
         const char* outfile_path;
         const bool verbose;
-    
+
+        std::vector<TH1D*> pruned_histograms;
+
     private: 
         void welcome();
         void initializeIO(const char* infile_path, 
             const char* outfile_path);
 
         void checkFile(TFile* file, const char* filename);
+        void generatePrunedHistograms();
         bool applyAllCuts(eventObj* this_event);
 
         std::vector<cut*> cuts;
-        std::vector<eventObj*> pruned_event_list;
 
         TFile* infile;
         TFile* outfile;

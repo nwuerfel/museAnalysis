@@ -88,13 +88,20 @@ int main(int argc, char* argv[]){
    
     // debug
     analyzer->debugAllCuts();
-    
+    // EOD
+
     if(!cuts_ok){
         std::cout << "couldn't add all your cuts, sorry :/\n";
         exit(-1);
     }
 
     int num_pass_cuts = analyzer->pruneInputTree();
+
+    // debug
+    analyzer->debugPrunedHistograms(); 
+    // EOD
+
+    std::cout << num_pass_cuts << " good events saved" << std::endl;
 
     // wrap up
     delete analyzer;
