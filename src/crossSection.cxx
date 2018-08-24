@@ -87,7 +87,7 @@ int main(int argc, char* argv[]){
     cuts_ok = cuts_ok && analyzer->addCut(gem_radial_cut);
    
     // debug
-    analyzer->debugAllCuts();
+    //analyzer->debugAllCuts();
     // EOD
 
     if(!cuts_ok){
@@ -98,10 +98,13 @@ int main(int argc, char* argv[]){
     int num_pass_cuts = analyzer->pruneInputTree();
 
     // debug
-    analyzer->debugPrunedHistograms(); 
+    //analyzer->debugPrunedHistograms(); 
     // EOD
 
     std::cout << num_pass_cuts << " good events saved" << std::endl;
+
+    std::cout << "pushing histos into outfile" << std::endl;
+    analyzer->writePrunedHistos();
 
     // wrap up
     delete analyzer;

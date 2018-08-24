@@ -1,12 +1,11 @@
 #include "../include/analysisManager.h"
-#define ROI_THETA_MIN 20
-#define ROI_THETA_MAX 100
 
 // initialization list construction
 analysisManager::analysisManager(const char* infile_path, 
     const char* outfile_path, bool verbose) : 
     infile_path(infile_path),  outfile_path(outfile_path),
     verbose(verbose){
+
     welcome();
     initializeIO(infile_path, outfile_path);
 
@@ -97,6 +96,10 @@ int analysisManager::pruneInputTree(){
 
     eventObj* this_event = new eventObj(); 
 
+    clock_t timer;
+
+    timer = clock();
+
     while(reader.Next()){
 
         // ~~~ INITIALIZE EVENT ~~~
@@ -121,28 +124,26 @@ int analysisManager::pruneInputTree(){
         // invoke cuts on the event 
         passed_cuts = applyAllCuts(this_event);
         if(verbose)
-            std::cout << "passed cuts: " << passed_cuts << std::endl;
-
-        // Debug
-        if(verbose && recon_tgt_hit_pos->Perp() > 34){
-            this_event->debug();
-        }
-        // EOD
+        //    std::cout << "passed cuts: " << passed_cuts << std::endl;
 
         if(passed_cuts){
             if(verbose){
-                std::cout << "added event #" << event_number 
-                    << " to pruned_histogram\n";
+//                std::cout << "added event #" << event_number 
+//                    << " to pruned_histogram\n";
             }
+            addEventToPrunedHistos(this_event);
             num_passed_cuts++;
         }
-        //TODO remove
-        if(event_number == 100)
-            break;
         event_number++;
     }
+    
+    timer = clock() - timer;
+
     if(verbose)
-        std::cout << "handled " << event_number << " events" << std::endl;
+        std::cout << "handled " << event_number 
+            << " events in " << timer << " cycles: " 
+            << ((double)timer)/CLOCKS_PER_SEC << " seconds" 
+            << std::endl;
     // gimme that memory back
     delete this_event;
     return num_passed_cuts;
@@ -174,15 +175,15 @@ bool analysisManager::applyAllCuts(eventObj* this_event){
     bool cut_ok;
     for(std::vector<int>::size_type i = 0; i != cuts.size(); i++){
         if(verbose){
-            std::cout << "applying cut: " << cuts[i]->name
-                << std::endl;
+        //    std::cout << "applying cut: " << cuts[i]->name
+        //        << std::endl;
         }
         cut_ok = cuts[i]->applyCut(this_event);
         retval = retval && cut_ok;
         if(!cut_ok){
             if(verbose){
-                std::cout << "failed cut: " << cuts[i]->name
-                    << std::endl;
+        //        std::cout << "failed cut: " << cuts[i]->name
+        //            << std::endl;
             }
             break;
         }
@@ -226,45 +227,51 @@ void analysisManager::generatePrunedHistograms(){
     // ADD HISTOGRAMS TO ADD HERE
     // shouldn't fail but oh well, check in case
     TH1D* theta_hist = new TH1D("pruned_theta_distribution",
-        "pruned_theta_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+        "pruned_theta_distribution", BIN_NUM, ROI_THETA_MIN, 
+        ROI_THETA_MAX);
     if(!theta_hist){
         std::cout << "theta_hist is bunk!\n";
         exit(-1);
     }
     TH1D* doca_hist = new TH1D("pruned_doca_distribution",
-        "pruned_doca_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+        "pruned_doca_distribution", BIN_NUM, ROI_DOCA_MIN, 
+        ROI_DOCA_MAX);
     if(!doca_hist){
         std::cout << "doca_hist is bunk!\n";
         exit(-1);
     }
     TH1D* weight_hist = new TH1D("pruned_weight_distribution",
-        "pruned_weight_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+        "pruned_weight_distribution", BIN_NUM,
+        ROI_WEIGHT_MIN, ROI_WEIGHT_MAX);
     if(!weight_hist){
         std::cout << "weight_hist is bunk!\n";
         exit(-1);
     }
     TH1D* vertex_x_hist = new TH1D("pruned_vertex_x_distribution",
-        "pruned_vertex_x_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+        "pruned_vertex_x_distribution", BIN_NUM, ROI_VERTEX_X_MIN, 
+        ROI_VERTEX_X_MAX);
     if(!vertex_x_hist){
         std::cout << "vertex_x_hist is bunk!\n";
         exit(-1);
     }
     TH1D* vertex_y_hist = new TH1D("pruned_vertex_y_distribution",
-        "pruned_vertex_y_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+        "pruned_vertex_y_distribution", BIN_NUM, ROI_VERTEX_Y_MIN, 
+        ROI_VERTEX_Y_MAX);
     if(!vertex_y_hist){
         std::cout << "vertex_y_hist is bunk!\n";
         exit(-1);
     }
     TH1D* vertex_z_hist = new TH1D("pruned_veretx_z_distribution",
-        "pruned_veretx_z_distribution", 80, ROI_THETA_MIN, ROI_THETA_MAX);
+        "pruned_veretx_z_distribution", BIN_NUM, ROI_VERTEX_Z_MIN, 
+        ROI_VERTEX_Z_MAX);
     if(!vertex_z_hist){
         std::cout << "vertex_z_hist is bunk!\n";
         exit(-1);
     }
     TH1D* gem_radial_dist_hist = 
         new TH1D("pruned_gem_radial_dist_distribution", 
-        "pruned_gem_radial_dist_distribution", 80, ROI_THETA_MIN, 
-        ROI_THETA_MAX);
+        "pruned_gem_radial_dist_distribution", BIN_NUM, 
+        ROI_GEM_RADIAL_DIST_MIN, ROI_GEM_RADIAL_DIST_MAX);
     if(!gem_radial_dist_hist){
         std::cout << "gem_radial_dist_hist is bunk!\n";
         exit(-1);
@@ -278,6 +285,44 @@ void analysisManager::generatePrunedHistograms(){
     pruned_histograms.push_back(vertex_y_hist);
     pruned_histograms.push_back(vertex_z_hist);
     pruned_histograms.push_back(gem_radial_dist_hist);
-
 }
 
+
+// adds fields in eventobject struct to the respective histograms
+// unfortunately, depends on the order in which the histograms are added to
+// the pruned_histograms vector, which increases complexity of adding a
+// histogram, oh well
+void analysisManager::addEventToPrunedHistos(eventObj* eventToAdd){
+
+    if(!eventToAdd){
+        std::cout << "tried to add null event!" << std::endl;
+    }
+
+    // this order is determined in generatePrunedHistos
+    // look there for indexing of each histogram
+    pruned_histograms[0]->Fill(eventToAdd->event.theta,
+        eventToAdd->event.weight);
+    pruned_histograms[1]->Fill(eventToAdd->event.doca,
+        eventToAdd->event.weight);
+    pruned_histograms[2]->Fill(eventToAdd->event.weight,
+        eventToAdd->event.weight);
+    pruned_histograms[3]->Fill(eventToAdd->event.vertex_x,
+        eventToAdd->event.weight);
+    pruned_histograms[4]->Fill(eventToAdd->event.vertex_y,
+        eventToAdd->event.weight);
+    pruned_histograms[5]->Fill(eventToAdd->event.vertex_z,
+        eventToAdd->event.weight);
+    pruned_histograms[6]->Fill(eventToAdd->event.gem_radial_dist,
+        eventToAdd->event.weight);
+}
+
+// writes the pruned histograms to the outfile
+void analysisManager::writePrunedHistos(){
+    if(!outfile){
+        std::cout << "tried to write histogram without outfile" 
+            << std::endl;  
+        exit(-1);
+    } 
+
+    outfile->Write();
+}
