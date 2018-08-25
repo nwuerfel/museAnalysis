@@ -33,35 +33,51 @@ int main(int argc, char* argv[]){
 
     const std::string defaultOutputPath = "../outputs/";
     const std::string defaultOutputName =  "default.out";
-    const std::string usage = "usage: ./crossSection <infile> "
-        "optional:<outfile>";
+    const std::string usage = "usage: ./crossSection <infileNo>" 
+        "<infile0> ... <infileNo-1> optional:<outfile>";
 
     // not sure what this is about but for now I keep legacy 
     //TApplication* app = new TApplication();    
     //gStyle->SetOptStat(0);
 
     // parse args
-    if(argc < 2){
+    if(argc < 3){
         std::cout << usage << std::endl;
-        exit(1);
+        exit(-1);
     }
-    const char* infile_path = argv[1];
+
+
+    // for now, we have user tell how many ifiles to expect
+    int infile_path_num = atoi(argv[1]);
+    if(argc-2 < infile_path_num){
+        std::cout << "you told me I'd get "  << infile_path_num
+            << " files, but I only see " << argc-2 << "of them..."
+            << std::endl;
+        exit(-1);
+    }
+
+    std::vector<const char*> infile_path_list;
+    for(int i=0;i<infile_path_num;i++){
+        infile_path_list.push_back(argv[i+2]); 
+    }
+
     std::string outfile_name;
 
     // setoutfile if provided
-    if (argc == 3){
-        outfile_name = argv[2];
+    if (argv[infile_path_num+2]){
+        outfile_name = argv[infile_path_num+2];
     }
     // default else
     else {
         outfile_name = defaultOutputName;
     }
+
     const char* outfile_path = (defaultOutputPath+outfile_name).c_str();
 
     // call mr. analysis
     // verbose for now
-    analysisManager* analyzer = new analysisManager(infile_path, 
-        outfile_path, true);
+    analysisManager* analyzer = new analysisManager(infile_path_list, 
+        outfile_path, 1);
 
     // initialize cuts to add to anlaysis
     cut* test_cut = new cut("test_cut");    
@@ -95,10 +111,10 @@ int main(int argc, char* argv[]){
         exit(-1);
     }
 
-    int num_pass_cuts = analyzer->pruneInputTree();
+    int num_pass_cuts = analyzer->pruneInputTrees();
 
     // debug
-    //analyzer->debugPrunedHistograms(); 
+    analyzer->debugPrunedHistograms(); 
     // EOD
 
     std::cout << num_pass_cuts << " good events saved" << std::endl;

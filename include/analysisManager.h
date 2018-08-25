@@ -24,6 +24,7 @@
 #include <TH2D.h>
 #include <time.h>
 #include <iostream>
+#include <assert.h>
 #include "../include/allCuts.h"
 #include "../include/eventObj.h"
 
@@ -42,40 +43,49 @@
 #define ROI_GEM_RADIAL_DIST_MIN 0
 #define ROI_GEM_RADIAL_DIST_MAX 40
 #define BIN_NUM 80
+#define MAX_NAME_SIZE 80
 
 class analysisManager {
     public: 
-        analysisManager(const char* infile_path, 
-            const char* outfile_path, bool verbose);
+        analysisManager(std::vector<const char*> infile_paths, 
+            const char* outfile_path, int verbose);
 
         ~analysisManager();
 
-        int pruneInputTree();
+        int pruneInputTrees();
 
         bool addCut(cut* cutName);
         void debugAllCuts();
         void debugPrunedHistograms();
         void writePrunedHistos();
 
-        const char* infile_path;
+        std::vector<const char*> infile_paths;
         const char* outfile_path;
-        const bool verbose;
+        const int verbose;
 
-        std::vector<TH1D*> pruned_histograms;
+        std::vector<std::vector<TH1D*>> pruned_histograms;
 
     private: 
         void welcome();
-        void initializeIO(const char* infile_path, 
+        void initializeIO(std::vector<const char*> infile_paths, 
             const char* outfile_path);
+        void cleanupIO();
+
+        int pruneInputTree(TFile* infile, int infile_num);
 
         void checkFile(TFile* file, const char* filename);
-        void generatePrunedHistograms();
-        void addEventToPrunedHistos(eventObj* eventToAdd);
+        void checkFiles(std::vector<TFile*> files, 
+            std::vector<const char*> filenames);
+        void debugInfiles();
+        void generatePrunedHistograms(int infile_num);
+        void addEventToPrunedHistos(eventObj* eventToAdd, 
+            int infile_num);
         bool applyAllCuts(eventObj* this_event);
 
         std::vector<cut*> cuts;
+        std::vector<TFile*> infiles;
 
-        TFile* infile;
+        //TFile* infile;
         TFile* outfile;
 };
 #endif 
